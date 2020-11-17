@@ -344,7 +344,7 @@ std::pair<double, double> TrojanMap::GetPlotLocation(double lat, double lon) {
  * @param  {std::string} id : location id
  * @return {double}         : latitude
  */
-double TrojanMap::GetLat(std::string id) { return 0; }
+double TrojanMap::GetLat(std::string id) { return data[id].lat; }
 
 /**
  * GetLon: Get the longitude of a Node given its id. 
@@ -352,7 +352,7 @@ double TrojanMap::GetLat(std::string id) { return 0; }
  * @param  {std::string} id : location id
  * @return {double}         : longitude
  */
-double TrojanMap::GetLon(std::string id) { return 0; }
+double TrojanMap::GetLon(std::string id) { return data[id].lon; }
 
 /**
  * GetName: Get the name of a Node given its id.
@@ -360,7 +360,7 @@ double TrojanMap::GetLon(std::string id) { return 0; }
  * @param  {std::string} id : location id
  * @return {std::string}    : name
  */
-std::string TrojanMap::GetName(std::string id) { return ""; }
+std::string TrojanMap::GetName(std::string id) { return data[id].name; }
 
 /**
  * GetNeighborIDs: Get the neighbor ids of a Node.
@@ -369,7 +369,7 @@ std::string TrojanMap::GetName(std::string id) { return ""; }
  * @return {std::vector<std::string>}  : neighbor ids
  */
 std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
-    std::vector<std::string> result;
+    std::vector<std::string> result = data[id].neighbors;
     return result;
 }
 
@@ -382,7 +382,12 @@ std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
  * @return {double}  : distance in mile
  */
 double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
-  // TODO: Use Haversine Formula:
+  // Use Haversine Formula:
+  double dlon = abs(a.lon - b.lon);
+  double dlat = abs(a.lat - b.lat);
+  double a = (sin(dlat / 2)) ^ 2 + cos(b.lat) * cos(a.lat) * (sin(dlon / 2)) ^ 2;
+  double c = 2 * arcsin(min(1, sqrt(a)));
+  double distances = 3961 * c;
   // dlon = lon2 - lon1;
   // dlat = lat2 - lat1;
   // a = (sin(dlat / 2)) ^ 2 + cos(lat1) * cos(lat2) * (sin(dlon / 2)) ^ 2;
@@ -391,7 +396,7 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
 
   // where 3961 is the approximate radius of the earth at the latitude of
   // Washington, D.C., in miles
-  return 0;
+  return distances;
 }
 
 /**
@@ -402,6 +407,9 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
  */
 double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
   double sum = 0;
+  for (int i = 0; i < path.size(); i++) {
+    sum += path[i];
+  }
   return sum;
 }
 
