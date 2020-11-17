@@ -383,19 +383,11 @@ std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
  */
 double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
   // Use Haversine Formula:
-  double dlon = abs(a.lon - b.lon);
-  double dlat = abs(a.lat - b.lat);
-  double a = (sin(dlat / 2)) ^ 2 + cos(b.lat) * cos(a.lat) * (sin(dlon / 2)) ^ 2;
+  double dlon = b.lon - a.lon;
+  double dlat = b.lat - a.lat;
+  double a = (sin(dlat / 2)) ^ 2 + cos(a.lat) * cos(b.lat) * (sin(dlon / 2)) ^ 2;
   double c = 2 * arcsin(min(1, sqrt(a)));
   double distances = 3961 * c;
-  // dlon = lon2 - lon1;
-  // dlat = lat2 - lat1;
-  // a = (sin(dlat / 2)) ^ 2 + cos(lat1) * cos(lat2) * (sin(dlon / 2)) ^ 2;
-  // c = 2 * arcsin(min(1, sqrt(a)));
-  // distances = 3961 * c;
-
-  // where 3961 is the approximate radius of the earth at the latitude of
-  // Washington, D.C., in miles
   return distances;
 }
 
@@ -433,6 +425,10 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
  */
 std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   std::pair<double, double> results(-1, -1);
+  if (data.find(name) != data.end()) {
+    results.first = data[name].lat;
+    results.second = data[name].lon;
+  }
   return results;
 }
 
