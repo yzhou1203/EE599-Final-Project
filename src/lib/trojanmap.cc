@@ -416,7 +416,7 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
   std::vector<std::string> results;
   std::map<std::string, Node>::iterator it = data.begin();
   while (it != data.end()) {
-    std::string tmp_name = it->first;
+    std::string tmp_name = it->second.name;
     if (tmp_name.find(name) != std::string::npos) {
       results.push_back(tmp_name);
     }
@@ -433,9 +433,13 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
  */
 std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   std::pair<double, double> results(-1, -1);
-  if (data.find(name) != data.end()) {
-    results.first = data[name].lat;
-    results.second = data[name].lon;
+  for (auto it = data.begin(); it != data.end(); it++) {
+    Node target = it->second;
+    if (target.name == name) {
+      results.first = target.lat;
+      results.second = target.lon;
+      break;
+    }
   }
   return results;
 }
