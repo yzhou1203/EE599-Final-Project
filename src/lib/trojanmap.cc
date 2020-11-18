@@ -385,8 +385,8 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
   // Use Haversine Formula:
   double dlon = b.lon - a.lon;
   double dlat = b.lat - a.lat;
-  double a = (sin(dlat / 2)) ^ 2 + cos(a.lat) * cos(b.lat) * (sin(dlon / 2)) ^ 2;
-  double c = 2 * arcsin(min(1, sqrt(a)));
+  double aa = pow(sin(dlat / 2), 2) + cos(a.lat) * cos(b.lat) * pow(sin(dlon / 2), 2);
+  double c = 2 * asin(std::min(1.00, sqrt(aa)));
   double distances = 3961 * c;
   return distances;
 }
@@ -399,8 +399,8 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
  */
 double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
   double sum = 0;
-  for (int i = 0; i < path.size(); i++) {
-    sum += path[i];
+  for (int i = 0; i < path.size() - 1; i++) {
+    sum += CalculateDistance(data[path[i]], data[path[i + 1]]);
   }
   return sum;
 }
@@ -416,9 +416,10 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
   std::vector<std::string> results;
   std::map<std::string, Node>::iterator it = data.begin();
   while (it != data.end()) {
-    std::string tmp_name = it->second.name;
-    if (tmp_name.find(name) != std::string::npos) {
-      results.push_back(tmp_name);
+    std::string str = it->second.name;
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    if (str.substr(0, name.size()) == name) {
+      results.push_back(it->second.name);
     }
     it++;
   }
@@ -444,6 +445,25 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   return results;
 }
 
+std::string getID(std::map<std::string, Node> data, std::string name) {
+  for (auto it = data.begin(); it != data.end(); it++) {
+    if (it->second.name == name) {
+      return it->second.name;
+    }
+  }
+}
+
+int minDistance(std::map<std::string, Node> data, std::map<std::string, int> dist, std::map<std::string, bool> visited) {
+  int min = INT_MAX, min_index;
+  for (int i = 0; i < data.size(); i++) {
+    if (visited[data[i]] == false && dist[data[i]] < min) {
+      min = dist[data[i]];
+      min_index = i;
+    }
+  }
+  return min_index;
+}
+
 /**
  * CalculateShortestPath: Given 2 locations, return the shortest path which is a
  * list of id.
@@ -455,6 +475,28 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
 std::vector<std::string> TrojanMap::CalculateShortestPath(
     std::string location1_name, std::string location2_name) {
   std::vector<std::string> x;
+  std::string location1_id = getID(location1_name);
+  std::string location2_id = getID(location2_name);
+  int V = data.size();
+  std::map<std::string, int> dist;
+  std::map<std::string, bool> visited; 
+
+  // initializtion
+  for (int i = 0; i < V; i++) {
+    dist[data[i]] = INF;
+    visited[data[i]] = false;
+  }
+
+  dist[location1_id] = 0;
+  visited[location1_id] = true;
+
+  for (int count = 0; count < V - 1; count++) {
+    int u = minDistance(data, dist, visited);
+    
+  }
+
+ 
+
   return x;
 }
 
