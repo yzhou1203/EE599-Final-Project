@@ -382,10 +382,17 @@ std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
  * @return {double}  : distance in mile
  */
 double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
+  const double DEG_TO_RAD = 0.017453292519943295769236907684886;
   // Use Haversine Formula:
-  double dlon = b.lon - a.lon;
-  double dlat = b.lat - a.lat;
-  double aa = pow(sin(dlat / 2), 2) + cos(a.lat) * cos(b.lat) * pow(sin(dlon / 2), 2);
+  double lat1 = a.lat, lat2 = b.lat;
+  double lon1 = a.lon, lon2 = b.lon;
+  double dlat = (lat2 - lat1) * DEG_TO_RAD;
+  double dlon = (lon2 - lon1) * DEG_TO_RAD;
+  lat1 = lat1 * DEG_TO_RAD;
+  lat2 = lat2 * DEG_TO_RAD;
+  lon1 = lon1 * DEG_TO_RAD;
+  lon2 = lon2 * DEG_TO_RAD;
+  double aa = pow(sin(dlat/2), 2) + cos(lat1) * cos(lat2) * pow(sin(dlon/2), 2);
   double c = 2 * asin(std::min(1.00, sqrt(aa)));
   double distances = 3961 * c;
   return distances;
@@ -445,23 +452,34 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   return results;
 }
 
-std::string getID(std::map<std::string, Node> data, std::string name) {
+std::string getID(const std::map<std::string, Node> &data, std::string name) {
+  std::string id;
   for (auto it = data.begin(); it != data.end(); it++) {
     if (it->second.name == name) {
-      return it->second.name;
+      id = it->first;
+      break;
     }
   }
+  return id;
 }
 
-int minDistance(std::map<std::string, Node> data, std::map<std::string, int> dist, std::map<std::string, bool> visited) {
-  int min = INT_MAX, min_index;
-  for (int i = 0; i < data.size(); i++) {
-    if (visited[data[i]] == false && dist[data[i]] < min) {
-      min = dist[data[i]];
-      min_index = i;
+bool isAllVisited(const std::map<std::string, bool> &visited) {
+  for (auto it = visited.begin(); it != visited.end(); it++) {
+    if (it->second == false) return false;
+  }
+  return true;
+}
+
+std::string findMinID(const std::map<std::string, double> &srtDist, std::map<std::string, bool> &visited) {
+  double min = INT_MAX;
+  std::string minID;
+  for (auto it = srtDist.begin(); it != srtDist.end(); it++) {
+    if (!visited[it->first] && it->second < min) {
+      min = it->second;
+      minID = it->first;
     }
   }
-  return min_index;
+  return minID;
 }
 
 /**
@@ -474,30 +492,46 @@ int minDistance(std::map<std::string, Node> data, std::map<std::string, int> dis
  */
 std::vector<std::string> TrojanMap::CalculateShortestPath(
     std::string location1_name, std::string location2_name) {
-  std::vector<std::string> x;
-  std::string location1_id = getID(location1_name);
-  std::string location2_id = getID(location2_name);
-  int V = data.size();
-  std::map<std::string, int> dist;
-  std::map<std::string, bool> visited; 
+  std::vector<std::string> path;
+  std::string source = getID(data, location1_name);
+  std::string destination = getID(data, location2_name);
+  std::map<std::string, double> srtDist;
+  std::map<std::string, bool> visited;
+  std::map<std::string, std::string> parent;
 
-  // initializtion
-  for (int i = 0; i < V; i++) {
-    dist[data[i]] = INF;
-    visited[data[i]] = false;
+  // inital
+  for (auto it = data.begin(); it != data.end(); it++) {
+    srtDist[it->first] = DBL_MAX;
+    visited[it->first] = false;
   }
 
-  dist[location1_id] = 0;
-  visited[location1_id] = true;
-
-  for (int count = 0; count < V - 1; count++) {
-    int u = minDistance(data, dist, visited);
-    
+  srtDist[source] = 0;
+  parent[source] = "INF";
+  
+  // implement Dijkstra’s shortest path algorithm
+  while (!isAllVisited(visited)) {
+    std::string current = findMinID(srtDist, visited);
+    if (current == destination) break;
+    visited[current] = true;
+    std::vector<std::string> neighbors = GetNeighborIDs(current);
+    for (auto neighbor: neighbors) {
+      double distance = CalculateDistance(data[current], data[neighbor]);
+      if (!visited[neighbor] && srtDist[current] + distance < srtDist[neighbor]) {
+        srtDist[neighbor] = srtDist[current] + distance;
+        parent[neighbor] = current;
+      }
+    }
   }
 
- 
+  std::string crawl = destination;
+  path.push_back(crawl);
 
-  return x;
+  while (parent[crawl] != "INF") {
+    path.push_back(parent[crawl]);
+    crawl = parent[crawl];
+  }
+  std::reverse(path.begin(), path.end());
+  return path;
 }
 
 /**
