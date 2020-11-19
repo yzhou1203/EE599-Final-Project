@@ -421,6 +421,7 @@ double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
  */
 std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
   std::vector<std::string> results;
+  std::transform(name.begin(), name.end(), name.begin(), ::tolower);
   std::map<std::string, Node>::iterator it = data.begin();
   while (it != data.end()) {
     std::string str = it->second.name;
@@ -495,6 +496,11 @@ std::vector<std::string> TrojanMap::CalculateShortestPath(
   std::vector<std::string> path;
   std::string source = getID(data, location1_name);
   std::string destination = getID(data, location2_name);
+
+  if (data.find(source) == data.end() || data.find(destination) == data.end()) {
+    return path;
+  }
+
   std::map<std::string, double> srtDist;
   std::map<std::string, bool> visited;
   std::map<std::string, std::string> parent;
