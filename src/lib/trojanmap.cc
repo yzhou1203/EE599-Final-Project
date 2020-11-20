@@ -406,6 +406,7 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
  */
 double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
   double sum = 0;
+  if (path.size() <= 0) return sum;
   for (int i = 0; i < path.size() - 1; i++) {
     sum += CalculateDistance(data[path[i]], data[path[i + 1]]);
   }
@@ -421,6 +422,7 @@ double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
  */
 std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
   std::vector<std::string> results;
+  if (name.size() <= 0) return results;
   std::transform(name.begin(), name.end(), name.begin(), ::tolower);
   std::map<std::string, Node>::iterator it = data.begin();
   while (it != data.end()) {
@@ -442,6 +444,7 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name) {
  */
 std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   std::pair<double, double> results(-1, -1);
+  if (name.size() <= 0) return results;
   for (auto it = data.begin(); it != data.end(); it++) {
     Node target = it->second;
     if (target.name == name) {
@@ -453,8 +456,15 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   return results;
 }
 
+bool isAllVisited(const std::map<std::string, bool> &visited) {
+  for (auto it = visited.begin(); it != visited.end(); it++) {
+    if (it->second == false) return false;
+  }
+  return true;
+}
+
 std::string getID(const std::map<std::string, Node> &data, std::string name) {
-  std::string id;
+  std::string id = "not found";
   for (auto it = data.begin(); it != data.end(); it++) {
     if (it->second.name == name) {
       id = it->first;
@@ -462,13 +472,6 @@ std::string getID(const std::map<std::string, Node> &data, std::string name) {
     }
   }
   return id;
-}
-
-bool isAllVisited(const std::map<std::string, bool> &visited) {
-  for (auto it = visited.begin(); it != visited.end(); it++) {
-    if (it->second == false) return false;
-  }
-  return true;
 }
 
 std::string findMinID(const std::map<std::string, double> &srtDist, std::map<std::string, bool> &visited) {
