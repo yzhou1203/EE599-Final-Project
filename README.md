@@ -106,7 +106,7 @@ If everything is correct, this menu will show up.
 
 We create some tests for you to test your program, please run
 ```shell
-bazel test tests:tests:trojanmap_test
+bazel test tests:trojanmap_test
 ```
 
 Please add you test in the [trojanmap_test_student.cc](tests/trojanmap_test_student.cc) and run
